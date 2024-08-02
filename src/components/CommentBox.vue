@@ -22,6 +22,7 @@ import {
   LoadingIcon,
   MarkdownIcon,
   PreviewIcon,
+	SpoilerIcon
 } from './Icons.js';
 import ImageWall from './ImageWall.vue';
 import {
@@ -138,6 +139,21 @@ const insert = (content: string): void => {
   textArea.selectionStart = startPosition + content.length;
   textArea.selectionEnd = startPosition + content.length;
   textArea.scrollTop = scrollTop;
+};
+
+const addSpoilerTag = (): void => {
+  const textArea = editorRef.value!;
+  const start = textArea.selectionStart;
+  const end = textArea.selectionEnd;
+  const text = textArea.value;
+  const before = text.substring(0, start);
+  const after = text.substring(end, text.length);
+  const selectedText = text.substring(start, end);
+  const newText = `${before}[spoiler]${selectedText}[/spoiler]${after}`;
+  editor.value = newText;
+  textArea.focus();
+  textArea.selectionStart = start + 9;
+  textArea.selectionEnd = end + 9; // Adjust selection
 };
 
 const onKeyDown = (event: KeyboardEvent): void => {
@@ -546,289 +562,273 @@ onMounted(() => {
 </script>
 
 <template>
-  <div :key="userInfo.token" class="wl-comment">
-    <div
-      v-if="config.login !== 'disable' && isLogin && !edit?.objectId"
-      class="wl-login-info"
-    >
-      <div class="wl-avatar">
-        <button
-          type="submit"
-          class="wl-logout-btn"
-          :title="locale.logout"
-          @click="onLogout"
-        >
-          <CloseIcon :size="14" />
-        </button>
+  <div :key="userInfo.token">
 
-        <a
-          href="#"
-          class="wl-login-nick"
-          aria-label="Profile"
-          :title="locale.profile"
-          @click="onProfile"
-        >
-          <img :src="userInfo.avatar" alt="avatar" />
-        </a>
-      </div>
+		<div
+			v-if="config.login !== 'disable' && isLogin && !edit?.objectId"
+			class="" style="margin: 0.5em; position: relative; display: flex; justify-content: space-between; align-items: center;"
+		>
+		<div style="display: flex; justify-content: space-between; align-items: center;">
+			<div class="wl-avatar-custom" >
+				<a
+					href="#"
+					class="wl-login-nick"
+					aria-label="Profile"
+					:title="locale.profile"
+				>
+					<img :src="userInfo.avatar" alt="avatar" />
+				</a>
+			</div>
 
-      <a
-        href="#"
-        class="wl-login-nick"
-        aria-label="Profile"
-        :title="locale.profile"
-        @click="onProfile"
-        v-text="`Edit Profile`"
-      />
-    </div>
+			<span
+					style="margin-left: 0.5em; font-weight: bold; font-size: 0.875em; line-height: 1; color: var(--waline-dark-grey);"
+					v-text="userInfo.display_name"
+				/>
+		</div>
 
-    <div class="wl-panel">
-      <div
-        v-if="config.login !== 'force' && config.meta.length && !isLogin"
-        class="wl-header"
-        :class="`item${config.meta.length}`"
-      >
-        <div v-for="kind in config.meta" :key="kind" class="wl-header-item">
-          <label
-            :for="`wl-${kind}`"
-            v-text="
-              locale[kind] +
-              (config.requiredMeta.includes(kind) || !config.requiredMeta.length
-                ? ''
-                : `(${locale.optional})`)
-            "
-          />
+			<div>
+				<a
+					href="#"
+					class=""
+					aria-label="Profile"
+					:title="locale.profile"
+					@click="onProfile"
+					v-text="`Edit Profile`"
+				/>
 
-          <input
-            :id="`wl-${kind}`"
-            :ref="
-              (element) => {
-                if (element) inputRefs[kind] = element as HTMLInputElement;
-              }
-            "
-            v-model="userMeta[kind]"
-            class="wl-input"
-            :class="`wl-${kind}`"
-            :name="kind"
-            :type="kind === 'mail' ? 'email' : 'text'"
-          />
-        </div>
-      </div>
+				<a
+					href="#"
+					class=""
+					style="margin-left: 0.5em;"
+					aria-label="Profile"
+					:title="locale.profile"
+					@click="onProfile"
+					v-text="`Logout`"
+				/>
 
-      <textarea
-        id="wl-edit"
-        ref="editorRef"
-        v-model="editor"
-        class="wl-editor"
-        :placeholder="replyUser ? `@${replyUser}` : locale.placeholder"
-        @keydown="onKeyDown"
-        @drop="onDrop"
-        @paste="onPaste"
-      />
+			</div>
+		</div>
 
-      <div v-show="showPreview" class="wl-preview">
-        <hr />
+		<div class="wl-comment">
+			<div class="wl-panel">
+	
+				<textarea
+					id="wl-edit"
+					ref="editorRef"
+					v-model="editor"
+					class="wl-editor"
+					:placeholder="replyUser ? `@${replyUser}` : locale.placeholder"
+					@keydown="onKeyDown"
+					@drop="onDrop"
+					@paste="onPaste"
+				/>
+	
+				<div v-show="showPreview" class="wl-preview">
+					<hr />
+	
+					<h4>{{ locale.preview }}:</h4>
+					<!-- eslint-disable-next-line vue/no-v-html -->
+					<div class="wl-content" v-html="previewText" />
+				</div>
+	
+				<div class="wl-footer">
+					<div class="wl-actions">
+						
+	
+						<button
+							v-show="emoji.tabs.length"
+							ref="emojiButtonRef"
+							type="button"
+							class="wl-action"
+							:class="{ active: showEmoji }"
+							:title="locale.emoji"
+							@click="showEmoji = !showEmoji"
+						>
+							<EmojiIcon />
+						</button>
+	
+						<button
+							v-if="config.search"
+							ref="gifButtonRef"
+							type="button"
+							class="wl-action"
+							:class="{ active: showGif }"
+							:title="locale.gif"
+							@click="showGif = !showGif"
+						>
+							<GifIcon />
+						</button>
+	
+						<input
+							id="wl-image-upload"
+							ref="imageUploadRef"
+							class="upload"
+							aria-hidden="true"
+							type="file"
+							accept=".png,.jpg,.jpeg,.webp,.bmp,.gif"
+							@change="onChange"
+						/>
+	
+						<label
+							v-if="canUploadImage"
+							for="wl-image-upload"
+							class="wl-action"
+							:title="locale.uploadImage"
+							:aria-label="locale.uploadImage"
+						>
+							<ImageIcon />
+						</label>
+	
+						<button
+							type="button"
+							class="wl-action"
+							:class="{ active: showPreview }"
+							:title="locale.preview"
+							@click="showPreview = !showPreview"
+						>
+							<PreviewIcon />
+						</button>
+	
+						<button
+							type="button"
+							class="wl-action"
+							title="Spoiler"
+							@click="addSpoilerTag"
+						>
+							<SpoilerIcon :size="24" />
+						</button>
+					</div>
+	
+					<div class="wl-info">
+						<div class="wl-captcha-container" />
+	
+						<div class="wl-text-number">
+							{{ wordNumber }}
+	
+							<span v-if="config.wordLimit">
+								&nbsp;/&nbsp;
+								<span
+									:class="{ illegal: !isWordNumberLegal }"
+									v-text="wordLimit"
+								/>
+							</span>
+	
+							&nbsp;{{ locale.word }}
+						</div>
+	
+						<button
+							v-if="config.login !== 'disable' && !isLogin"
+							type="button"
+							class="wl-btn"
+							@click="onLogin"
+							v-text="locale.login"
+						/>
+	
+						<button
+							v-if="config.login !== 'force' || isLogin"
+							type="submit"
+							class="primary wl-btn"
+							title="Cmd|Ctrl + Enter"
+							:disabled="isSubmitting"
+							@click="submitComment"
+						>
+							<LoadingIcon v-if="isSubmitting" :size="16" />
+	
+							<template v-else>
+								{{ locale.submit }}
+							</template>
+						</button>
+					</div>
+	
+					<div
+						ref="gifPopupRef"
+						class="wl-gif-popup"
+						:class="{ display: showGif }"
+					>
+						<input
+							ref="gifSearchInputRef"
+							type="text"
+							:placeholder="locale.gifSearchPlaceholder"
+							@input="onGifSearch"
+						/>
+	
+						<ImageWall
+							v-if="searchResults.list.length"
+							:items="searchResults.list"
+							:column-width="200"
+							:gap="6"
+							@insert="insert($event)"
+							@scroll="onImageWallScroll"
+						/>
+	
+						<div v-if="searchResults.loading" class="wl-loading">
+							<LoadingIcon :size="30" />
+						</div>
+					</div>
+	
+					<div
+						ref="emojiPopupRef"
+						class="wl-emoji-popup"
+						:class="{ display: showEmoji }"
+					>
+						<template
+							v-for="(emojiItem, index) in emoji.tabs"
+							:key="emojiItem.name"
+						>
+							<div v-if="index === emojiTabIndex" class="wl-tab-wrapper">
+								<button
+									v-for="key in emojiItem.items"
+									:key="key"
+									type="button"
+									:title="key"
+									@click="insert(`:${key}:`)"
+								>
+									<img
+										v-if="showEmoji"
+										class="wl-emoji"
+										:src="emoji.map[key]"
+										:alt="key"
+										loading="lazy"
+										referrerPolicy="no-referrer"
+									/>
+								</button>
+							</div>
+						</template>
+	
+						<div v-if="emoji.tabs.length > 1" class="wl-tabs">
+							<button
+								v-for="(emojiItem, index) in emoji.tabs"
+								:key="emojiItem.name"
+								type="button"
+								class="wl-tab"
+								:class="{ active: emojiTabIndex === index }"
+								@click="emojiTabIndex = index"
+							>
+								<img
+									class="wl-emoji"
+									:src="emojiItem.icon"
+									:alt="emojiItem.name"
+									:title="emojiItem.name"
+									loading="lazy"
+									referrerPolicy="no-referrer"
+								/>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+	
+			<button
+				v-if="replyId || edit?.objectId"
+				type="button"
+				class="wl-close"
+				:title="locale.cancelReply"
+				@click="replyId ? emit('cancelReply') : emit('cancelEdit')"
+			>
+				<CloseIcon :size="24" />
+			</button>
 
-        <h4>{{ locale.preview }}:</h4>
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div class="wl-content" v-html="previewText" />
-      </div>
+		</div>
 
-      <div class="wl-footer">
-        <div class="wl-actions">
-          <a
-            href="https://guides.github.com/features/mastering-markdown/"
-            title="Markdown Guide"
-            aria-label="Markdown is supported"
-            class="wl-action"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MarkdownIcon />
-          </a>
-
-          <button
-            v-show="emoji.tabs.length"
-            ref="emojiButtonRef"
-            type="button"
-            class="wl-action"
-            :class="{ active: showEmoji }"
-            :title="locale.emoji"
-            @click="showEmoji = !showEmoji"
-          >
-            <EmojiIcon />
-          </button>
-
-          <button
-            v-if="config.search"
-            ref="gifButtonRef"
-            type="button"
-            class="wl-action"
-            :class="{ active: showGif }"
-            :title="locale.gif"
-            @click="showGif = !showGif"
-          >
-            <GifIcon />
-          </button>
-
-          <input
-            id="wl-image-upload"
-            ref="imageUploadRef"
-            class="upload"
-            aria-hidden="true"
-            type="file"
-            accept=".png,.jpg,.jpeg,.webp,.bmp,.gif"
-            @change="onChange"
-          />
-
-          <label
-            v-if="canUploadImage"
-            for="wl-image-upload"
-            class="wl-action"
-            :title="locale.uploadImage"
-            :aria-label="locale.uploadImage"
-          >
-            <ImageIcon />
-          </label>
-
-          <button
-            type="button"
-            class="wl-action"
-            :class="{ active: showPreview }"
-            :title="locale.preview"
-            @click="showPreview = !showPreview"
-          >
-            <PreviewIcon />
-          </button>
-        </div>
-
-        <div class="wl-info">
-          <div class="wl-captcha-container" />
-
-          <div class="wl-text-number">
-            {{ wordNumber }}
-
-            <span v-if="config.wordLimit">
-              &nbsp;/&nbsp;
-              <span
-                :class="{ illegal: !isWordNumberLegal }"
-                v-text="wordLimit"
-              />
-            </span>
-
-            &nbsp;{{ locale.word }}
-          </div>
-
-          <button
-            v-if="config.login !== 'disable' && !isLogin"
-            type="button"
-            class="wl-btn"
-            @click="onLogin"
-            v-text="locale.login"
-          />
-
-          <button
-            v-if="config.login !== 'force' || isLogin"
-            type="submit"
-            class="primary wl-btn"
-            title="Cmd|Ctrl + Enter"
-            :disabled="isSubmitting"
-            @click="submitComment"
-          >
-            <LoadingIcon v-if="isSubmitting" :size="16" />
-
-            <template v-else>
-              {{ locale.submit }}
-            </template>
-          </button>
-        </div>
-
-        <div
-          ref="gifPopupRef"
-          class="wl-gif-popup"
-          :class="{ display: showGif }"
-        >
-          <input
-            ref="gifSearchInputRef"
-            type="text"
-            :placeholder="locale.gifSearchPlaceholder"
-            @input="onGifSearch"
-          />
-
-          <ImageWall
-            v-if="searchResults.list.length"
-            :items="searchResults.list"
-            :column-width="200"
-            :gap="6"
-            @insert="insert($event)"
-            @scroll="onImageWallScroll"
-          />
-
-          <div v-if="searchResults.loading" class="wl-loading">
-            <LoadingIcon :size="30" />
-          </div>
-        </div>
-
-        <div
-          ref="emojiPopupRef"
-          class="wl-emoji-popup"
-          :class="{ display: showEmoji }"
-        >
-          <template
-            v-for="(emojiItem, index) in emoji.tabs"
-            :key="emojiItem.name"
-          >
-            <div v-if="index === emojiTabIndex" class="wl-tab-wrapper">
-              <button
-                v-for="key in emojiItem.items"
-                :key="key"
-                type="button"
-                :title="key"
-                @click="insert(`:${key}:`)"
-              >
-                <img
-                  v-if="showEmoji"
-                  class="wl-emoji"
-                  :src="emoji.map[key]"
-                  :alt="key"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-              </button>
-            </div>
-          </template>
-
-          <div v-if="emoji.tabs.length > 1" class="wl-tabs">
-            <button
-              v-for="(emojiItem, index) in emoji.tabs"
-              :key="emojiItem.name"
-              type="button"
-              class="wl-tab"
-              :class="{ active: emojiTabIndex === index }"
-              @click="emojiTabIndex = index"
-            >
-              <img
-                class="wl-emoji"
-                :src="emojiItem.icon"
-                :alt="emojiItem.name"
-                :title="emojiItem.name"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-              />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <button
-      v-if="replyId || edit?.objectId"
-      type="button"
-      class="wl-close"
-      :title="locale.cancelReply"
-      @click="replyId ? emit('cancelReply') : emit('cancelEdit')"
-    >
-      <CloseIcon :size="24" />
-    </button>
   </div>
 </template>
