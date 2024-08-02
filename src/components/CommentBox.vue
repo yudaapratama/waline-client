@@ -601,7 +601,7 @@ onMounted(() => {
 					class=""
 					style="margin-left: 0.5em;"
 					aria-label="Logout"
-					:title="locale.profile"
+					:title="locale.logout"
 					@click="onLogout"
 					v-text="`Logout`"
 				/>
