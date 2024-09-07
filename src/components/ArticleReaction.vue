@@ -21,6 +21,7 @@ const config = inject<ComputedRef<WalineConfig>>('config')!;
 
 const votingIndex = ref(-1);
 const voteNumbers = ref<number[]>([]);
+const totalReaction = ref(0);
 
 const locale = computed(() => config.value.locale);
 const isReactionEnabled = computed(() => config.value.reaction.length > 0);
@@ -58,6 +59,8 @@ const fetchReaction = async (): Promise<void> => {
   voteNumbers.value = reaction.map(
     (_reaction, index) => resp[0][`reaction${index}`],
   );
+	
+	totalReaction.value = resp[0].totalReaction;
 };
 
 const vote = async (index: number): Promise<void> => {
@@ -65,7 +68,6 @@ const vote = async (index: number): Promise<void> => {
   if (votingIndex.value === -1) {
     const { serverURL, lang, path } = config.value;
     const currentVoteItemIndex = reactionStorage.value[path];
-
     // mark voting status
     votingIndex.value = index;
 
@@ -95,6 +97,8 @@ const vote = async (index: number): Promise<void> => {
       });
       voteNumbers.value[index] = (voteNumbers.value[index] || 0) + 1;
     }
+		
+		totalReaction.value = voteNumbers.value.reduce((a, b) => a + b, 0);
 
     // update vote info in local storage
     if (currentVoteItemIndex === index) delete reactionStorage.value[path];
@@ -120,6 +124,7 @@ onUnmounted(() => abort?.());
 <template>
   <div v-if="reactionsInfo.length" class="wl-reaction">
     <div class="wl-reaction-title" v-text="locale.reactionTitle" />
+    <div class="wl-reaction-respons" v-text="`${totalReaction} Reactions`" />
 
     <ul class="wl-reaction-list">
       <li
