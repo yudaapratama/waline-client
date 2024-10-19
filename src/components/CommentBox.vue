@@ -174,7 +174,7 @@ const uploadImage = (file: File): Promise<void> => {
     .then((url) => {
       editor.value = editor.value.replace(
         uploadText,
-        `\r\n![${file.name}](${url})`,
+        `\r\n![](${url})`,
       );
     })
     .catch((err: Error) => {

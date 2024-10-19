@@ -2,6 +2,7 @@ import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 
 import { markedTeXExtensions } from './markedMathExtension.js';
+import { markedSpoilerExtension } from './markedSpoilerExtension.js'
 import type {
   WalineEmojiMaps,
   WalineHighlighter,
@@ -36,6 +37,8 @@ export const parseMarkdown = (
 
     marked.use({ extensions });
   }
+
+	marked.use({ extensions: markedSpoilerExtension() });
 
   return marked.parse(parseEmoji(content, emojiMap)) as string;
 };

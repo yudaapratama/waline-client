@@ -1,6 +1,6 @@
 {
-  "name": "@waline/client",
-  "version": "3.3.0",
+  "name": "@shinigamiscans/waline-client",
+  "version": "1.0.0",
   "description": "client for waline comment system",
   "keywords": [
     "valine",
@@ -9,8 +9,8 @@
     "blog"
   ],
   "repository": {
-    "url": "https://github.com/walinejs/waline",
-    "directory": "packages/client"
+    "url": "https://github.com/shinigamiscans/waline",
+    "directory": "waline-client"
   },
   "license": "MIT",
   "author": {
