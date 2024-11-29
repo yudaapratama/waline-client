@@ -315,8 +315,16 @@ const submitComment = async (): Promise<void> => {
       : addComment(options));
 
     isSubmitting.value = false;
+		
+		if(response.errno == 1001) {
+			alert(response.errmsg);
+			onLogout();
+			return
+		}
 
-    if (response.errmsg) return alert(response.errmsg);
+    if (response.errmsg) {
+			return alert(response.errmsg);
+		}
 
     emit('submit', response.data!);
 
@@ -331,7 +339,7 @@ const submitComment = async (): Promise<void> => {
     if (props.edit?.objectId) emit('cancelEdit');
   } catch (err: unknown) {
     isSubmitting.value = false;
-
+		
     alert((err as TypeError).message);
   }
 };
