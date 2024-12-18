@@ -133,8 +133,6 @@ const isEditingCurrent = computed(
 	
 					<span v-if="comment.label" class="wl-badge" v-text="comment.label" />
 	
-					<span v-if="comment['sticky']" class="wl-badge" v-text="locale.sticky" />
-	
 					<span
 						v-if="typeof comment.level === 'number'"
 						:class="`wl-badge level${comment.level}`"
