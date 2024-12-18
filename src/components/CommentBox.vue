@@ -573,7 +573,7 @@ onMounted(() => {
   <div :key="userInfo.token">
 
 		<div
-			v-if="config.login !== 'disable' && isLogin && !edit?.objectId"
+			v-if="config.login !== 'disable' && isLogin && !edit?.objectId && !replyId"
 			class="" style="margin: 0.5em; position: relative; display: flex; justify-content: space-between; align-items: center;"
 		>
 		<div style="display: flex; justify-content: space-between; align-items: center;">

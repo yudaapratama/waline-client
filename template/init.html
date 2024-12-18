@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Waline init test</title>
   </head>
-  <body>
+  <body style="background-color: #070403;">
     阅读量: <span id="/" class="waline-pageview-count"></span> 评论数:
     <span id="/" class="waline-comment-count"></span>
     <div id="waline" style="max-width: 800px; margin: 0 auto"></div>
@@ -19,6 +19,7 @@
         comment: true,
         pageview: true,
         reaction: true,
+				dark: true,
 				lang: 'en',
         serverURL:
           import.meta.env.SERVERURL || 'https://walinejs.comment.lithub.cc',

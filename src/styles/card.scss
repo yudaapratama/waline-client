@@ -32,7 +32,12 @@
 .wl-card-item {
   position: relative;
   display: flex;
-  padding: 0.5em;
+  padding: 0.8em;
+	&.sticky {
+		background-color: #454545;
+		border-radius: 10px;
+		margin-bottom: 10px;
+	}
 
   .wl-card-item {
     padding-inline-end: 0;
@@ -44,6 +49,10 @@
   width: 0;
   padding-bottom: 0.5em;
   border-bottom: 1px dashed var(--waline-border-color);
+
+	&.sticky {
+		border-bottom: none;
+	}
 
   &:first-child {
     margin-inline-start: 1em;
@@ -82,6 +91,9 @@
 
   span.wl-nick {
     color: var(--waline-dark-grey);
+		// &.sticky {
+		// 	color: var(--waline-white);
+		// }
   }
 
   .wl-badge {
@@ -105,7 +117,7 @@
 
   .wl-meta {
     position: relative;
-    line-height: 1;
+    line-height: 1.5;
 
     > span {
       display: inline-block;
@@ -127,8 +139,8 @@
   }
 
   .wl-comment-actions {
-    float: right;
-    line-height: 1;
+    // float: right;
+    // line-height: 1;
 
     [dir='rtl'] & {
       float: left;
@@ -139,6 +151,8 @@
   .wl-like,
   .wl-reply,
   .wl-edit {
+		padding: 0;
+    margin-right: 6px;
     display: inline-flex;
     align-items: center;
 
@@ -225,7 +239,7 @@
   }
 
   .wl-admin-actions {
-    margin: 8px 0;
+    // margin: 8px 0;
     font-size: 12px;
     text-align: right;
   }
