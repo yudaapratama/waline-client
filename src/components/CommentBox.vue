@@ -323,6 +323,9 @@ const submitComment = async (): Promise<void> => {
 		}
 
     if (response.errmsg) {
+			if (response.errno === 401) {
+				return alert('Login dulu tong!');
+			}
 			return alert(response.errmsg);
 		}
 
